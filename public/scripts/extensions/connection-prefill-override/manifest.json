@@ -1,0 +1,13 @@
+{
+    "display_name": "Connection Prefill Override",
+    "loading_order": 2,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "author": "hirsaeki",
+    "version": "0.1.0",
+    "homePage": "https://github.com/hirsaeki/SillyTavern",
+    "hooks": {
+        "activate": "init"
+    }
+}
