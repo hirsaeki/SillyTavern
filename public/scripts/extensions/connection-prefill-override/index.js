@@ -63,7 +63,9 @@ function applySelectedProfileOverride() {
     const settings = getSettings();
     const noPrefill = getProfileOverride();
 
-    if (noPrefill && !activeNoPrefill && initialSelectionApplied) {
+    const enteringNoPrefill = noPrefill && !activeNoPrefill;
+    const needsInitialBaseline = !initialSelectionApplied && settings.baselineContinuePrefill === null;
+    if (enteringNoPrefill && (initialSelectionApplied || needsInitialBaseline)) {
         settings.baselineContinuePrefill = input.checked;
     }
 
@@ -164,10 +166,6 @@ export async function init() {
     createControl();
 
     const input = getContinuePrefillInput();
-    if (input && getSettings().baselineContinuePrefill === null) {
-        getSettings().baselineContinuePrefill = input.checked;
-    }
-
     input?.addEventListener('input', () => {
         if (applyingOverride) {
             return;
