@@ -62,7 +62,7 @@ function applySelectedProfileOverride() {
     const settings = getSettings();
     const noPrefill = getProfileOverride();
 
-    if (noPrefill && !activeNoPrefill) {
+    if (noPrefill && !activeNoPrefill && settings.baselineContinuePrefill === null) {
         settings.baselineContinuePrefill = input.checked;
     }
 
@@ -85,6 +85,10 @@ function updateControlState() {
     }
     checkbox.disabled = !profileId;
     checkbox.checked = getProfileOverride(profileId);
+}
+
+function syncSelectedProfileOverride() {
+    queueMicrotask(applySelectedProfileOverride);
 }
 
 function createControl() {
@@ -123,7 +127,7 @@ function createControl() {
         applySelectedProfileOverride();
     });
 
-    profiles.addEventListener('change', () => queueMicrotask(applySelectedProfileOverride));
+    profiles.addEventListener('change', syncSelectedProfileOverride);
     updateControlState();
 }
 
@@ -145,7 +149,7 @@ function onProfileDeleted(profile) {
         delete settings.profileNoPrefill[profileId];
         saveSettingsDebounced();
     }
-    queueMicrotask(applySelectedProfileOverride);
+    syncSelectedProfileOverride();
 }
 
 export async function init() {
@@ -165,13 +169,19 @@ export async function init() {
     }
 
     input?.addEventListener('input', () => {
-        if (!applyingOverride && !activeNoPrefill) {
-            rememberBaseline();
-            saveSettingsDebounced();
+        if (applyingOverride) {
+            return;
         }
+        if (activeNoPrefill) {
+            setContinuePrefill(false);
+            return;
+        }
+        rememberBaseline();
+        saveSettingsDebounced();
     });
 
     eventSource.on(event_types.SETTINGS_UPDATED, onSettingsUpdated);
+    eventSource.on(event_types.CONNECTION_PROFILE_CREATED, syncSelectedProfileOverride);
     eventSource.on(event_types.CONNECTION_PROFILE_DELETED, onProfileDeleted);
 
     applySelectedProfileOverride();
