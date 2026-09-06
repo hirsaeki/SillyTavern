@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS = {
 
 let applyingOverride = false;
 let activeNoPrefill = false;
+let initialSelectionApplied = false;
 
 function getSettings() {
     extension_settings[MODULE_NAME] ??= structuredClone(DEFAULT_SETTINGS);
@@ -62,7 +63,7 @@ function applySelectedProfileOverride() {
     const settings = getSettings();
     const noPrefill = getProfileOverride();
 
-    if (noPrefill && !activeNoPrefill && settings.baselineContinuePrefill === null) {
+    if (noPrefill && !activeNoPrefill && initialSelectionApplied) {
         settings.baselineContinuePrefill = input.checked;
     }
 
@@ -74,6 +75,7 @@ function applySelectedProfileOverride() {
     }
 
     activeNoPrefill = noPrefill;
+    initialSelectionApplied = true;
     updateControlState();
 }
 
@@ -85,10 +87,6 @@ function updateControlState() {
     }
     checkbox.disabled = !profileId;
     checkbox.checked = getProfileOverride(profileId);
-}
-
-function syncSelectedProfileOverride() {
-    queueMicrotask(applySelectedProfileOverride);
 }
 
 function createControl() {
@@ -127,7 +125,9 @@ function createControl() {
         applySelectedProfileOverride();
     });
 
+    const syncSelectedProfileOverride = () => queueMicrotask(applySelectedProfileOverride);
     profiles.addEventListener('change', syncSelectedProfileOverride);
+    eventSource.on(event_types.CONNECTION_PROFILE_CREATED, syncSelectedProfileOverride);
     updateControlState();
 }
 
@@ -149,7 +149,7 @@ function onProfileDeleted(profile) {
         delete settings.profileNoPrefill[profileId];
         saveSettingsDebounced();
     }
-    syncSelectedProfileOverride();
+    queueMicrotask(applySelectedProfileOverride);
 }
 
 export async function init() {
@@ -181,7 +181,6 @@ export async function init() {
     });
 
     eventSource.on(event_types.SETTINGS_UPDATED, onSettingsUpdated);
-    eventSource.on(event_types.CONNECTION_PROFILE_CREATED, syncSelectedProfileOverride);
     eventSource.on(event_types.CONNECTION_PROFILE_DELETED, onProfileDeleted);
 
     applySelectedProfileOverride();
