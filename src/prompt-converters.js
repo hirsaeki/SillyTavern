@@ -454,7 +454,8 @@ export function convertGooglePrompt(messages, model, useSysPrompt, names) {
     const toolNameMap = {};
 
     // https://ai.google.dev/gemini-api/docs/latest-model#prefilled-model-turn-validation
-    const noPrefillModel = /gemini-3\.[67]-flash|gemini-3\.5-flash-lite/.test(model);
+    const isArgonModel = /^gemini-4-argon(?:-cyber-permissive)?$/.test(model);
+    const noPrefillModel = /gemini-3\.[67]-flash|gemini-3\.5-flash-lite/.test(model) || isArgonModel;
 
     const contents = [];
     messages.forEach((message, index) => {
@@ -574,14 +575,14 @@ export function convertGooglePrompt(messages, model, useSysPrompt, names) {
 
         // https://ai.google.dev/gemini-api/docs/gemini-3#migrating_from_other_models
         // Inject stored thought signatures, or fall back to bypass magic for Gemini 3
-        if (/gemini-3/.test(model) || /gemini-2\.5/.test(model)) {
+        if (/gemini-3/.test(model) || /gemini-2\.5/.test(model) || isArgonModel) {
             const skipSignatureMagic = 'skip_thought_signature_validator';
             const textSignature = message.signature;
 
             parts.forEach((part) => {
                 if (enableThoughtSignatures && textSignature && typeof part.text === 'string') {
                     part.thoughtSignature = textSignature;
-                } else if (/gemini-3/.test(model)) {
+                } else if (/gemini-3/.test(model) || isArgonModel) {
                     // Gemini 3: Fall back to bypass magic for function calls (mandatory) and images
                     if (part.functionCall && !part.thoughtSignature) {
                         part.thoughtSignature = skipSignatureMagic;
@@ -1300,6 +1301,22 @@ export function calculateGoogleBudgetTokens(maxTokens, reasoningEffort, model) {
         }
 
         return null;
+    }
+
+    if (/^gemini-4-argon(?:-cyber-permissive)?$/.test(model)) {
+        switch (reasoningEffort) {
+            case REASONING_EFFORT.min:
+            case REASONING_EFFORT.low:
+                return 'LOW';
+            case REASONING_EFFORT.medium:
+                return 'MEDIUM';
+            case REASONING_EFFORT.high:
+            case REASONING_EFFORT.max:
+                return 'HIGH';
+            default:
+                // Use the provider default (MEDIUM, or HIGH for cyber-permissive).
+                return null;
+        }
     }
 
     if (/gemini-3[.\d]*-pro/.test(model)) {
