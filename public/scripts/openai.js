@@ -6262,6 +6262,7 @@ export function isImageInliningSupported() {
         'gemini-2.5',
         'gemini-3',
         'gemini-4-argon',
+        'gemini-4-carbon',
         'gemini-exp-1206',
         'learnlm',
         'gemini-robotics',
@@ -6380,6 +6381,7 @@ export function isVideoInliningSupported() {
         'gemini-exp-1206',
         'gemini-3',
         'gemini-4-argon',
+        'gemini-4-carbon',
         'gemma-4',
         // Z.AI (GLM)
         'glm-4.5v',
@@ -6419,6 +6421,7 @@ export function isAudioInliningSupported() {
         'gemini-2.5',
         'gemini-3',
         'gemini-4-argon',
+        'gemini-4-carbon',
         'gemini-exp-1206',
         'gpt-4o-audio',
         'gpt-4o-realtime',

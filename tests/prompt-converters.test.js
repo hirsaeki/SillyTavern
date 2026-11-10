@@ -157,8 +157,8 @@ describe('calculateGoogleBudgetTokens', () => {
         expect(mod.calculateGoogleBudgetTokens(8192, 'medium', 'gpt-4')).toBeNull();
     });
 
-    describe('gemini-4 argon', () => {
-        for (const model of ['gemini-4-argon', 'gemini-4-argon-cyber-permissive']) {
+    describe('gemini-4', () => {
+        for (const model of ['gemini-4-argon', 'gemini-4-argon-cyber-permissive', 'gemini-4-carbon', 'gemini-4-carbon-cyber-permissive']) {
             test(`${model} maps thinking effort to supported levels`, () => {
                 expect(mod.calculateGoogleBudgetTokens(8192, 'auto', model)).toBeNull();
                 expect(mod.calculateGoogleBudgetTokens(8192, 'min', model)).toBe('LOW');
@@ -1075,7 +1075,7 @@ describe('convertGooglePrompt', () => {
         expect(result.contents.filter(c => c.role === 'user')).toHaveLength(1);
     });
 
-    for (const model of ['gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-4-argon', 'gemini-4-argon-cyber-permissive']) {
+    for (const model of ['gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-4-argon', 'gemini-4-argon-cyber-permissive', 'gemini-4-carbon', 'gemini-4-carbon-cyber-permissive']) {
         test(`merges a trailing prefill into the user turn on ${model}`, () => {
             const messages = [
                 { role: 'user', content: 'Hi' },
@@ -1088,18 +1088,20 @@ describe('convertGooglePrompt', () => {
         });
     }
 
-    test('Argon includes a fallback thought signature for synthetic function calls', () => {
-        const messages = [
-            { role: 'user', content: 'Search' },
-            { role: 'assistant', tool_calls: [
-                { id: 'tc1', function: { name: 'search', arguments: '{}' } },
-            ] },
-            { role: 'tool', tool_call_id: 'tc1', content: 'Found' },
-        ];
-        const result = mod.convertGooglePrompt(messages, 'gemini-4-argon', false, names);
-        expect(result.contents[1].role).toBe('model');
-        expect(result.contents[1].parts[0].thoughtSignature).toBe('skip_thought_signature_validator');
-    });
+    for (const model of ['gemini-4-argon', 'gemini-4-argon-cyber-permissive', 'gemini-4-carbon', 'gemini-4-carbon-cyber-permissive']) {
+        test(`${model} includes a fallback thought signature for synthetic function calls`, () => {
+            const messages = [
+                { role: 'user', content: 'Search' },
+                { role: 'assistant', tool_calls: [
+                    { id: 'tc1', function: { name: 'search', arguments: '{}' } },
+                ] },
+                { role: 'tool', tool_call_id: 'tc1', content: 'Found' },
+            ];
+            const result = mod.convertGooglePrompt(messages, model, false, names);
+            expect(result.contents[1].role).toBe('model');
+            expect(result.contents[1].parts[0].thoughtSignature).toBe('skip_thought_signature_validator');
+        });
+    }
 
     test('keeps non-trailing model turns on models without prefill support', () => {
         const messages = [
