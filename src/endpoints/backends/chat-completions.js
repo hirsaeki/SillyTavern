@@ -523,7 +523,7 @@ async function sendMakerSuiteRequest(request, response) {
             'gemini-3.1-flash-image',
         ];
 
-        const isGemini4Model = m => /^gemini-4-(?:argon|carbon)(?:-cyber-permissive)?$/.test(m);
+        const isGemini4Model = m => /^gemini-4-(?:(?:argon|carbon)(?:-cyber-permissive)?|hydrogen)$/.test(m);
         const isThinkingConfigModel = m => (/^gemini-2.5-(flash|pro)/.test(m) && !/-image(-preview)?$/.test(m)) || (/^gemini-3[.\d]*-(flash|pro)/.test(m)) || isGemini4Model(m);
         const isImageSizeModel = m => /^gemini-3/.test(m);
         // https://ai.google.dev/gemini-api/docs/latest-model#api-changes-and-parameter-updates
@@ -617,6 +617,11 @@ async function sendMakerSuiteRequest(request, response) {
             if (useVertexAi && thinkingBudget === 0 && thinkingConfig.includeThoughts) {
                 console.info('Thinking budget is 0, but includeThoughts is true. Thoughts will not be included in the response.');
                 thinkingConfig.includeThoughts = false;
+            }
+
+            if (model === 'gemini-4-hydrogen') {
+                // Chat edits and compaction may invalidate prior thought-signature prefixes.
+                thinkingConfig.prefixMismatchBehavior = 'DROP';
             }
 
             generationConfig.thinkingConfig = thinkingConfig;

@@ -454,7 +454,7 @@ export function convertGooglePrompt(messages, model, useSysPrompt, names) {
     const toolNameMap = {};
 
     // https://ai.google.dev/gemini-api/docs/latest-model#prefilled-model-turn-validation
-    const isGemini4Model = /^gemini-4-(?:argon|carbon)(?:-cyber-permissive)?$/.test(model);
+    const isGemini4Model = /^gemini-4-(?:(?:argon|carbon)(?:-cyber-permissive)?|hydrogen)$/.test(model);
     const noPrefillModel = /gemini-3\.[678]-flash|gemini-3\.5-flash-lite/.test(model) || isGemini4Model;
 
     const contents = [];
@@ -595,6 +595,15 @@ export function convertGooglePrompt(messages, model, useSysPrompt, names) {
                 }
                 // Gemini 2.5 without stored signatures: signatures are optional, no bypass needed
             });
+            if (model === 'gemini-4-hydrogen') {
+                // Only the first parallel function call may carry a thought signature.
+                let firstFunctionCall = true;
+                for (const part of parts) {
+                    if (!part.functionCall) continue;
+                    if (!firstFunctionCall) delete part.thoughtSignature;
+                    firstFunctionCall = false;
+                }
+            }
         }
 
         // merge consecutive messages with the same role
@@ -1303,7 +1312,7 @@ export function calculateGoogleBudgetTokens(maxTokens, reasoningEffort, model) {
         return null;
     }
 
-    if (/^gemini-4-(?:argon|carbon)(?:-cyber-permissive)?$/.test(model)) {
+    if (/^gemini-4-(?:(?:argon|carbon)(?:-cyber-permissive)?|hydrogen)$/.test(model)) {
         switch (reasoningEffort) {
             case REASONING_EFFORT.min:
             case REASONING_EFFORT.low:
@@ -1311,10 +1320,11 @@ export function calculateGoogleBudgetTokens(maxTokens, reasoningEffort, model) {
             case REASONING_EFFORT.medium:
                 return 'MEDIUM';
             case REASONING_EFFORT.high:
-            case REASONING_EFFORT.max:
                 return 'HIGH';
+            case REASONING_EFFORT.max:
+                return model === 'gemini-4-hydrogen' ? 'XHIGH' : 'HIGH';
             default:
-                // Use the provider default (MEDIUM, or HIGH for cyber-permissive).
+                // Use the model default (HIGH for Hydrogen/cyber, MEDIUM otherwise).
                 return null;
         }
     }
