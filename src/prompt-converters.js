@@ -454,7 +454,7 @@ export function convertGooglePrompt(messages, model, useSysPrompt, names) {
     const toolNameMap = {};
 
     // https://ai.google.dev/gemini-api/docs/latest-model#prefilled-model-turn-validation
-    const isGemini4Model = /^gemini-4-(?:(?:argon|carbon)(?:-cyber-permissive)?|hydrogen)$/.test(model);
+    const isGemini4Model = /^gemini-4-(?:(?:argon|carbon)(?:-cyber-permissive)?|hydrogen|neon)$/.test(model);
     const noPrefillModel = /gemini-3\.[67]-flash|gemini-3\.5-flash-lite/.test(model) || isGemini4Model;
 
     const contents = [];
@@ -595,7 +595,7 @@ export function convertGooglePrompt(messages, model, useSysPrompt, names) {
                 }
                 // Gemini 2.5 without stored signatures: signatures are optional, no bypass needed
             });
-            if (model === 'gemini-4-hydrogen') {
+            if (model === 'gemini-4-hydrogen' || model === 'gemini-4-neon') {
                 // Only the first parallel function call may carry a thought signature.
                 let firstFunctionCall = true;
                 for (const part of parts) {
@@ -1312,7 +1312,7 @@ export function calculateGoogleBudgetTokens(maxTokens, reasoningEffort, model) {
         return null;
     }
 
-    if (/^gemini-4-(?:(?:argon|carbon)(?:-cyber-permissive)?|hydrogen)$/.test(model)) {
+    if (/^gemini-4-(?:(?:argon|carbon)(?:-cyber-permissive)?|hydrogen|neon)$/.test(model)) {
         switch (reasoningEffort) {
             case REASONING_EFFORT.min:
             case REASONING_EFFORT.low:
@@ -1322,9 +1322,9 @@ export function calculateGoogleBudgetTokens(maxTokens, reasoningEffort, model) {
             case REASONING_EFFORT.high:
                 return 'HIGH';
             case REASONING_EFFORT.max:
-                return model === 'gemini-4-hydrogen' ? 'XHIGH' : 'HIGH';
+                return (model === 'gemini-4-hydrogen' || model === 'gemini-4-neon') ? 'XHIGH' : 'HIGH';
             default:
-                // Use the model default (HIGH for Hydrogen/cyber, MEDIUM otherwise).
+                // Use the model default (HIGH for Hydrogen, Neon, and cyber; MEDIUM otherwise).
                 return null;
         }
     }
