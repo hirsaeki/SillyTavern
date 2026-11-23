@@ -161,11 +161,11 @@ describe('calculateGoogleBudgetTokens', () => {
         for (const model of ['gemini-4-argon', 'gemini-4-argon-cyber-permissive', 'gemini-4-carbon', 'gemini-4-carbon-cyber-permissive']) {
             test(`${model} maps thinking effort to supported levels`, () => {
                 expect(mod.calculateGoogleBudgetTokens(8192, 'auto', model)).toBeNull();
-                expect(mod.calculateGoogleBudgetTokens(8192, 'min', model)).toBe('LOW');
-                expect(mod.calculateGoogleBudgetTokens(8192, 'low', model)).toBe('LOW');
-                expect(mod.calculateGoogleBudgetTokens(8192, 'medium', model)).toBe('MEDIUM');
-                expect(mod.calculateGoogleBudgetTokens(8192, 'high', model)).toBe('HIGH');
-                expect(mod.calculateGoogleBudgetTokens(8192, 'max', model)).toBe('HIGH');
+                expect(mod.calculateGoogleBudgetTokens(8192, 'min', model)).toBe('low');
+                expect(mod.calculateGoogleBudgetTokens(8192, 'low', model)).toBe('low');
+                expect(mod.calculateGoogleBudgetTokens(8192, 'medium', model)).toBe('medium');
+                expect(mod.calculateGoogleBudgetTokens(8192, 'high', model)).toBe('high');
+                expect(mod.calculateGoogleBudgetTokens(8192, 'max', model)).toBe('high');
             });
         }
     });
@@ -173,11 +173,11 @@ describe('calculateGoogleBudgetTokens', () => {
     for (const model of ['gemini-4-hydrogen', 'gemini-4-neon']) {
         test(`${model} supports XHIGH only at max effort`, () => {
             expect(mod.calculateGoogleBudgetTokens(8192, 'auto', model)).toBeNull();
-            expect(mod.calculateGoogleBudgetTokens(8192, 'min', model)).toBe('LOW');
-            expect(mod.calculateGoogleBudgetTokens(8192, 'low', model)).toBe('LOW');
-            expect(mod.calculateGoogleBudgetTokens(8192, 'medium', model)).toBe('MEDIUM');
-            expect(mod.calculateGoogleBudgetTokens(8192, 'high', model)).toBe('HIGH');
-            expect(mod.calculateGoogleBudgetTokens(8192, 'max', model)).toBe('XHIGH');
+            expect(mod.calculateGoogleBudgetTokens(8192, 'min', model)).toBe('low');
+            expect(mod.calculateGoogleBudgetTokens(8192, 'low', model)).toBe('low');
+            expect(mod.calculateGoogleBudgetTokens(8192, 'medium', model)).toBe('medium');
+            expect(mod.calculateGoogleBudgetTokens(8192, 'high', model)).toBe('high');
+            expect(mod.calculateGoogleBudgetTokens(8192, 'max', model)).toBe('xhigh');
         });
     }
 

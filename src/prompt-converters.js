@@ -1316,13 +1316,13 @@ export function calculateGoogleBudgetTokens(maxTokens, reasoningEffort, model) {
         switch (reasoningEffort) {
             case REASONING_EFFORT.min:
             case REASONING_EFFORT.low:
-                return 'LOW';
+                return 'low';
             case REASONING_EFFORT.medium:
-                return 'MEDIUM';
+                return 'medium';
             case REASONING_EFFORT.high:
-                return 'HIGH';
+                return 'high';
             case REASONING_EFFORT.max:
-                return (model === 'gemini-4-hydrogen' || model === 'gemini-4-neon') ? 'XHIGH' : 'HIGH';
+                return (model === 'gemini-4-hydrogen' || model === 'gemini-4-neon') ? 'xhigh' : 'high';
             default:
                 // Use the model default (HIGH for Hydrogen, Neon, and cyber; MEDIUM otherwise).
                 return null;
